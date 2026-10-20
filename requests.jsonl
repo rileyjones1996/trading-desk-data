@@ -28,3 +28,7 @@
 {"jsonrpc":"2.0","id":46,"method":"tools/call","params":{"name":"get_session_vwap","arguments":{"exchange":"hyperliquid","symbol":"BTC","timeframe":"1m","anchor":"2026-10-19T00:00:00Z"}}}
 {"jsonrpc":"2.0","id":47,"method":"tools/call","params":{"name":"get_session_vwap","arguments":{"exchange":"kraken","symbol":"BTC/USD","timeframe":"5m"}}}
 {"jsonrpc":"2.0","id":48,"method":"tools/call","params":{"name":"get_session_vwap","arguments":{"exchange":"kraken","symbol":"BTC/USD","timeframe":"1m","anchor":"2026-09-01T00:00:00Z"}}}
+{"jsonrpc":"2.0","id":"si-kraken-btc","method":"tools/call","params":{"name":"get_symbol_info","arguments":{"exchange":"kraken","symbol":"BTC/USD"}}}
+{"jsonrpc":"2.0","id":"si-kraken-aaplx","method":"tools/call","params":{"name":"get_symbol_info","arguments":{"exchange":"kraken","symbol":"AAPLx/USD"}}}
+{"jsonrpc":"2.0","id":"si-okx-btc","method":"tools/call","params":{"name":"get_symbol_info","arguments":{"exchange":"okx","symbol":"BTC-USDT"}}}
+{"jsonrpc":"2.0","id":"si-hl-btc","method":"tools/call","params":{"name":"get_symbol_info","arguments":{"exchange":"hyperliquid","symbol":"BTC"}}}

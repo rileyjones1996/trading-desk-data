@@ -1,4 +1,4 @@
-# trading-desk-data (v0.1.0)
+# trading-desk-data (v0.2.0)
 
 Unofficial; not affiliated with Kraken, OKX, or Hyperliquid. Read-only, no order endpoints.
 
@@ -11,6 +11,7 @@ Server: `server/index.mjs` is a zero-dependency Node (>=18) MCP server. It speak
 | get_candles | exchange `kraken\|okx\|hyperliquid`, symbol, timeframe `1m\|5m\|15m\|1h`, limit ≤300 | `Candle[] = { ts, open, high, low, close, volume }`, oldest first, with ts in ms UTC |
 | get_last_price | exchange, symbol | `Ticker = { exchange, symbol, last, bid, ask, ts }` |
 | get_session_vwap | exchange, symbol, timeframe, session `crypto\|us_equity` (default crypto), anchor (ISO, optional) | VWAP of typical price × volume since the anchor, plus `session`, `anchor_used`, `anchor_source`, `bars_used`, `bars_expected`, `built_from_timeframe` (and for us_equity `regular_hours_only`, `bars_dropped_outside_rth`) |
+| get_symbol_info | exchange, symbol | `SymbolInfo = { exchange, symbol, venue_symbol, min_qty, qty_step, price_tick, min_notional, source }`; null when the venue doesn't publish a field. Kraken AssetPairs (`ordermin`, `lot_decimals`, `tick_size`→`pair_decimals`, `costmin`; xStocks via `aclass_base=tokenized_asset`), OKX `/api/v5/public/instruments` (`minSz`, `lotSz`, `tickSz`; `-SWAP` in contracts), Hyperliquid `meta` (`szDecimals` only) |
 
 Endpoints: Hyperliquid `POST https://api.hyperliquid.xyz/info` (`candleSnapshot`, `allMids`, and `l2Book` for bid/ask; perps, so `last` is the mid). Kraken `/0/public/OHLC` and `/0/public/Ticker`; OKX `/api/v5/market/candles`, `history-candles` (paging for VWAP) and `ticker`.
 Symbols: `BTC/USD`, `btc-usd` and `BTC_USD` all work. On Kraken, BTC maps to XBT. On OKX the form is `BASE-QUOTE`. Kraken xStocks use `AAPLx/USD` (sent with `asset_class=tokenized_asset`).
@@ -19,7 +20,7 @@ Symbols: `BTC/USD`, `btc-usd` and `BTC_USD` all work. On Kraken, BTC maps to XBT
 ```
 node server/index.mjs < requests.jsonl
 ```
-`proof.jsonl` holds real responses captured on 2026-10-19 (US Eastern).
+`proof.jsonl` holds real responses captured on 2026-10-19 (US Eastern); get_symbol_info proofs (Kraken BTC/USD, AAPLx/USD; OKX BTC-USDT; Hyperliquid BTC) appended 2026-10-20.
 
 ## Session anchors
 - `crypto`: 00:00 UTC today.

@@ -2,6 +2,7 @@
 // Zero-dependency MCP server: JSON-RPC 2.0 over stdio (newline-delimited). Public, read-only endpoints only.
 import { createInterface } from "node:readline";
 import { TF, sessionAnchor, SESSION_LABEL, buildVwap } from "./session.mjs";
+import { krakenInfo, okxInfo, hlInfo } from "./symbolinfo.mjs";
 
 const num = (x) => (x === undefined || x === null || x === "" ? null : Number(x));
 
@@ -18,7 +19,7 @@ const krakenParams = (s) => isXStock(s) ? { pair: `${s.base}/${s.quote}`, asset_
 const okxInst = ({ base, quote }) => `${base}-${quote}`;
 
 async function getJson(url) {
-  const r = await fetch(url, { headers: { "User-Agent": "trading-desk-data/0.1.0" } });
+  const r = await fetch(url, { headers: { "User-Agent": "trading-desk-data/0.2.0" } });
   if (!r.ok) throw new Error(`HTTP ${r.status} from ${new URL(url).host}`);
   return r.json();
 }
@@ -27,8 +28,8 @@ async function kraken(path, params) {
   if (j.error?.length) throw new Error(`Kraken: ${j.error.join("; ")}`);
   return j.result;
 }
-async function okx(path, params) {
-  const j = await getJson(`https://www.okx.com/api/v5/market/${path}?${new URLSearchParams(params)}`);
+async function okx(path, params, group = "market") {
+  const j = await getJson(`https://www.okx.com/api/v5/${group}/${path}?${new URLSearchParams(params)}`);
   if (j.code !== "0") throw new Error(`OKX: ${j.msg || j.code}`);
   return j.data;
 }
@@ -134,6 +135,32 @@ const tools = {
         fetch: (tf, sinceMs) => fetchCandles(exchange, symbol, tf, { sinceMs }) });
     },
   },
+  get_symbol_info: {
+    description: "Order-size and price rules from public metadata: SymbolInfo = { exchange, symbol, venue_symbol, min_qty, qty_step, price_tick, min_notional, source }. Fields the venue doesn't publish are null. OKX derivatives sizes are in contracts (qty_unit). Read-only.",
+    inputSchema: { type: "object", required: ["exchange", "symbol"], properties: {
+      exchange: { type: "string", enum: ["kraken", "okx", "hyperliquid"] }, symbol: { type: "string", description: "e.g. BTC/USD, BTC-USDT, BTC-USDT-SWAP, AAPLx/USD, or BTC (Hyperliquid)" } } },
+    async run({ exchange, symbol }) {
+      check(exchange);
+      if (exchange === "hyperliquid") {
+        const coin = hlCoin(symbol); const meta = await hl({ type: "meta" });
+        const u = meta.universe?.find((x) => x.name === coin); if (!u) throw new Error(`Hyperliquid: unknown coin ${coin}`);
+        return hlInfo(symbol, u);
+      }
+      if (exchange === "okx") {
+        const id = String(symbol).trim().toUpperCase().replace(/[\/_:]/g, "-");
+        const instType = /-SWAP$/.test(id) ? "SWAP" : "SPOT";
+        const instId = instType === "SWAP" ? id : okxInst(parseSymbol(symbol));
+        const [d] = await okx("instruments", { instType, instId }, "public"); if (!d) throw new Error(`OKX: unknown instrument ${instId}`);
+        return okxInfo(symbol, d);
+      }
+      const s = parseSymbol(symbol);
+      // AssetPairs filters xStocks by aclass_base (Ticker/OHLC use asset_class).
+      const params = isXStock(s) ? { pair: `${s.base}/${s.quote}`, aclass_base: "tokenized_asset" } : krakenParams(s);
+      const res = await kraken("AssetPairs", params); const [key, p] = Object.entries(res)[0] || [];
+      if (!p) throw new Error(`Kraken: unknown pair ${symbol}`);
+      return krakenInfo(symbol, key, p);
+    },
+  },
 };
 
 const send = (m) => process.stdout.write(JSON.stringify(m) + "\n");
@@ -142,7 +169,7 @@ async function handle(msg) {
   const reply = (result) => id !== undefined && send({ jsonrpc: "2.0", id, result });
   const fail = (code, message) => id !== undefined && send({ jsonrpc: "2.0", id, error: { code, message } });
   if (method === "initialize") return reply({ protocolVersion: params.protocolVersion || "2025-06-18",
-    capabilities: { tools: {} }, serverInfo: { name: "trading-desk-data", version: "0.1.0" } });
+    capabilities: { tools: {} }, serverInfo: { name: "trading-desk-data", version: "0.2.0" } });
   if (method?.startsWith("notifications/")) return;
   if (method === "ping") return reply({});
   if (method === "tools/list") return reply({ tools: Object.entries(tools).map(([name, t]) => ({ name, description: t.description, inputSchema: t.inputSchema })) });

@@ -1,0 +1,24 @@
+{
+  "name": "trading-desk-data",
+  "displayName": "Trading Desk Data",
+  "version": "0.2.1",
+  "description": "Read-only market data from Kraken, OKX and Hyperliquid public APIs: candles, last price, session VWAP and symbol order rules (min size, step, tick). Unofficial; no order or trading endpoints.",
+  "author": {
+    "name": "Riley Jones"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/rileyjones1996/trading-desk-data",
+  "homepage": "https://github.com/rileyjones1996/trading-desk-data",
+  "keywords": [
+    "trading",
+    "market-data",
+    "kraken",
+    "okx",
+    "hyperliquid",
+    "vwap",
+    "candles",
+    "read-only"
+  ],
+  "mcpServers": "./mcp.json",
+  "skills": "./skills/"
+}

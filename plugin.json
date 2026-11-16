@@ -1,7 +1,9 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "trading-desk-data",
-  "description": "Read-only market data (candles, last price, session VWAP) from Kraken, OKX and Hyperliquid public APIs. No order or trading endpoints.",
-  "version": "0.2.0",
-  "author": { "name": "Riley Jones" }
+  "description": "Read-only market data from Kraken, OKX and Hyperliquid public APIs: candles, last price, session VWAP and symbol order rules (min size, step, tick). Unofficial; no order or trading endpoints.",
+  "version": "0.2.1",
+  "author": {
+    "name": "Riley Jones"
+  }
 }
